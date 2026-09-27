@@ -1,0 +1,17 @@
+{
+  "name": "sala-3d",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Configurador 3D de sala de estar en el navegador",
+  "author": "Ricardo Manuel Edreira Penas",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "build": "python3 scripts/build_single.py",
+    "test": "node tests/smoke.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.47.0"
+  }
+}

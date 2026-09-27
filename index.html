@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sala de estar 3D</title>
+<meta name="description" content="Configurador 3D de sala de estar en el navegador: sofá, TV, escritorio, acabados y comprobaciones de medidas.">
+<meta name="theme-color" content="#101315">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sala 3D">
+<meta property="og:title" content="Sala 3D · configurador de sala de estar en el navegador">
+<meta property="og:description" content="Prueba el sofá, la TV, el escritorio y los acabados sobre una sala real de 3,17 × 2,43 m y comprueba que todo cabe.">
+<meta property="og:url" content="https://ricardoedreirapenas.github.io/sala-3d/">
+<meta property="og:image" content="https://ricardoedreirapenas.github.io/sala-3d/docs/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Vista 3D de la sala desde la cocina, con sofá chaise longue, escritorio y TV">
+<meta property="og:locale" content="es_ES">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <div id="loading">Montando la sala…</div>
+    <div id="labels"></div>
+    <div id="hint">Arrastra para girar · rueda o pellizco para acercar</div>
+    <div id="views" role="group" aria-label="Vistas de cámara">
+      <button class="vbtn" id="v-cocina" data-view="cocina">Desde la cocina</button>
+      <button class="vbtn" id="v-ventana" data-view="ventana">Desde la ventana</button>
+      <button class="vbtn" id="v-tv" data-view="tv">Desde el sofá</button>
+      <button class="vbtn" id="v-iso" data-view="iso" aria-pressed="true">Maqueta</button>
+      <button class="vbtn" id="v-planta" data-view="planta">Planta</button>
+    </div>
+  </div>
+
+  <aside id="panel">
+    <header>
+      <h1>Sala con balconera</h1>
+      <p class="sub">Render 3D a partir de un croquis con medidas reales. Cambia las medidas en «Mis medidas» para probar con tu sala.</p>
+      <div class="stats">
+        <div class="stat"><b id="st-area">8,0 m²</b><span>Superficie</span></div>
+        <div class="stat"><b id="st-size">3,17 × 2,43</b><span>Metros</span></div>
+        <div class="stat"><b id="st-tv">2,6 m</b><span>Sofá → TV</span></div>
+      </div>
+    </header>
+
+    <details class="group measures" id="measures">
+      <summary><span class="label">Mis medidas</span><span class="sum-hint">Adapta la planta a tu sala</span></summary>
+      <form id="room-form" novalidate>
+        <svg id="room-svg" viewBox="0 0 320 220" role="img" aria-label="Plano de la sala con las medidas actuales"></svg>
+        <div id="m-fields" class="m-grid"></div>
+        <p class="m-help">La ventana está en un nicho: pon su ancho, su fondo y la pared que queda a cada lado del cristal. Si tus paredes son paralelas, pon el mismo ancho arriba y abajo. El lado de abajo queda abierto hacia la cocina.</p>
+        <div class="label m-sub">Muebles</div>
+        <div id="f-fields" class="m-grid"></div>
+        <p class="m-help">Se admiten decimales (91,5). La TV va en pulgadas y el resto en centímetros.</p>
+        <div class="share">
+          <button class="btn small" type="submit" id="m-apply">Aplicar medidas</button>
+          <button class="btn small" type="button" id="m-reset">Volver a las originales</button>
+        </div>
+        <p id="m-msg" class="m-msg" aria-live="polite"></p>
+      </form>
+    </details>
+
+    <div class="group">
+      <div class="label">Distribución</div>
+      <div class="seg" role="group" aria-label="Distribución">
+        <button class="btn" id="l-A" data-layout="A" aria-pressed="true">A · Como la tengo<small>Chaise hacia la cocina y escritorio junto a la ventana</small></button>
+        <button class="btn" id="l-B" data-layout="B">B · Chaise a la ventana<small>La chaise mira a la luz</small></button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="label">Estilo</div>
+      <div class="chips" id="presets"></div>
+      <div id="finishes" class="finishes"></div>
+      <div class="share">
+        <button class="btn small" id="copy-link">Copiar enlace de este diseño</button>
+        <button class="btn small" id="save-img">Guardar imagen</button>
+        <span id="copy-msg" class="copy-msg" hidden></span>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="label">Mostrar</div>
+      <div class="chips">
+        <button class="chip" id="t-day" aria-pressed="true">Luz de día</button>
+        <button class="chip" id="t-night" aria-pressed="false">Noche</button>
+        <button class="chip" id="t-open" aria-pressed="false">Abrir balconera</button>
+        <button class="chip" id="t-dims" aria-pressed="true">Medidas</button>
+        <button class="chip" id="t-tags" aria-pressed="true">Etiquetas</button>
+        <button class="chip" id="t-adims" aria-pressed="true">Medidas de muebles</button>
+        <button class="chip" id="t-rot" aria-pressed="false">Girar</button>
+        <button class="chip" id="t-hq" aria-pressed="true">Alta calidad</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="label">Muebles</div>
+      <div class="list" id="items"></div>
+    </div>
+
+    <div class="group">
+      <div class="label">Comprobaciones</div>
+      <div id="checks"></div>
+    </div>
+
+    <div class="group">
+      <div class="label">Supuestos del croquis original</div>
+      <ul class="notes">
+        <li><b>Paredes:</b> la del sofá mide 2,43 y la de la TV 2,80. La sala mide 3,135 de ancho junto a la ventana (68 + 146 + 99,5) y 3,165 junto a la cocina, así que la pared de la TV se abre 3 cm.</li>
+        <li><b>Ventana:</b> balconera de dos hojas que abren hacia dentro, al fondo de un nicho de 146 × 30,5 cm con 14 cm de pared a cada lado. Unos 2,20 m de alto y el cajón de la persiana encima.</li>
+        <li><b>Lado de la cocina:</b> abierto. Las dos paredes giran hacia fuera al llegar a la cocina.</li>
+        <li><b>Muebles:</b> medidas estimadas por la foto (sofá de 2,40 × 0,90 con chaise de 1,55, TV de 50″, mueble bajo de 1,50). Techo a 2,60 m.</li>
+      </ul>
+    </div>
+  </aside>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"./vendor/three/build/three.module.min.js","three/addons/":"./vendor/three/examples/jsm/"}}
+</script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

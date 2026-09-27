@@ -9,7 +9,7 @@ import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
-import { DEFAULT_ROOM, ROOM_LIMITS, T, DEFAULT_FURNITURE, FURNITURE_LIMITS, HEIGHTS, WINDOW, CATALOG, PRESETS, DEFAULT_DESIGN } from './config.js';
+import { DEFAULT_ROOM, ROOM_LIMITS, T, DEFAULT_FURNITURE, FURNITURE_LIMITS, HEIGHTS, WINDOW, BALCONY, CATALOG, PRESETS, DEFAULT_DESIGN } from './config.js';
 import { createTextures } from './textures.js';
 import { panelInfo } from './info.js';
 
@@ -114,7 +114,8 @@ const M = {
   white: std('#F5F5F3', 0.4),
   paper: new THREE.MeshStandardMaterial({ color: '#fbf7ef', roughness: 0.9, emissive: '#ffd9a0', emissiveIntensity: 0, side: THREE.DoubleSide }),
   ground: std('#c9ccc7', 0.95),
-  outside: std('#dfe7e8', 0.9),
+  slab: std('#d6d1c8', 0.7),
+  iron: std('#151617', 0.5, 0.55),
   leaf: std('#4E6B3A', 0.8),
   leafLight: std('#6d8f4a', 0.8),
   pot: std('#EDEAE4', 0.5),
@@ -262,8 +263,9 @@ function buildRoom() {
   const pts = [[0, 0], [nx0, 0], [nx0, zb], [nx1, zb], [nx1, 0], [Wt, 0], [xR(R), R], [0, R]];
   const floor = new THREE.Mesh(new THREE.ShapeGeometry(new THREE.Shape(pts.map(([x, z]) => new THREE.Vector2(x, -z)))), M.floor);
   floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; roomGroup.add(floor);
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), M.ground);
-  ground.rotation.x = -Math.PI / 2; ground.position.set(Wt / 2, -0.012, L / 2); ground.receiveShadow = true; roomGroup.add(ground);
+  // Suelo de alrededor solo por dentro de la fachada: al otro lado del balcón hay vacío
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(80, 40), M.ground);
+  ground.rotation.x = -Math.PI / 2; ground.position.set(Wt / 2, -0.012, -nicheD - T + 20); ground.receiveShadow = true; roomGroup.add(ground);
 
   // Rodapié
   const sk = a => B(roomGroup, ...a, M.skirting);
@@ -288,9 +290,8 @@ function buildRoom() {
     roomAnim.push({ obj: p.rotation, key: 'y', closed: 0, open: sign > 0 ? -1.35 : 1.35 });
   };
   leaf(glass0 + 0.06, 1); leaf(glass1 - 0.06, -1);
-  // Exterior: un balcón luminoso
-  B(roomGroup, nx0 - 0.6, nx1 + 0.6, -0.02, 0, zb - T - 1.3, zb - T, M.outside);
-  B(roomGroup, nx0 - 0.6, nx1 + 0.6, 0, 1.0, zb - T - 1.36, zb - T - 1.3, M.outside);
+  // Balcón de asomarse: losa estrecha y barandilla de forja negra
+  balcony(roomGroup, nx0 - 0.08, nx1 + 0.08, zb - T);
 
   // Luz de cielo por la balconera
   skyLights = new THREE.Group(); roomGroup.add(skyLights);
@@ -320,6 +321,38 @@ function buildRoom() {
   dim(dims, [xR(R) + o, y0, 0], [xR(R) + o, y0, R], fmt(R));
   dim(dims, [0, y0, L + 0.25], [xR(L), y0, L + 0.25], fmt(G.Wb), true);
   dim(dims, [nx0 + 0.08, y0, zb], [nx0 + 0.08, y0, 0], fmt(nicheD), true);
+}
+/* Balcón típico de asomarse: losa de 45 cm con goterón y barandilla de forja (barrotes, pasamanos y una cenefa de anillas) */
+function balcony(g, x0, x1, zf) {
+  const b = new THREE.Group(); g.add(b);
+  const D = BALCONY.depth, z1 = zf - D, hR = BALCONY.rail;
+  B(b, x0, x1, -0.14, 0, z1, zf, M.slab);                                   // losa
+  B(b, x0 - 0.01, x1 + 0.01, -0.16, -0.12, z1 - 0.01, zf, M.slab);          // goterón
+  B(b, x0 - 0.3, x1 + 0.3, -0.16, 0, zf - 0.02, zf, M.slab, { cast: false }); // canto de la fachada
+  const bar = (xa, za, xb, zb2, y0, y1) => { const len = Math.hypot(xb - xa, zb2 - za), m = B(b, -0.006, 0.006, y0, y1, -len / 2, len / 2, M.iron); m.position.set((xa + xb) / 2, (y0 + y1) / 2, (za + zb2) / 2); m.rotation.y = Math.atan2(xb - xa, zb2 - za); return m; };
+  const inset = 0.03, fx0 = x0 + inset, fx1 = x1 - inset, fz = z1 + inset;
+  // Pasamanos (pletina) y travesaños
+  B(b, fx0 - 0.02, fx1 + 0.02, hR - 0.03, hR, fz - 0.025, fz + 0.025, M.iron);
+  [[fx0, zf], [fx1, zf]].forEach(([x]) => B(b, x - 0.02, x + 0.02, hR - 0.03, hR, fz - 0.025, zf, M.iron));
+  [0.06, hR - 0.2].forEach(y => { B(b, fx0, fx1, y, y + 0.02, fz - 0.008, fz + 0.008, M.iron); [fx0, fx1].forEach(x => B(b, x - 0.008, x + 0.008, y, y + 0.02, fz, zf, M.iron)); });
+  // Postes en las esquinas
+  [fx0, fx1].forEach(x => B(b, x - 0.015, x + 0.015, 0, hR, fz - 0.015, fz + 0.015, M.iron));
+  // Barrotes cada 11 cm con cenefa de anillas arriba
+  const n = Math.round((fx1 - fx0) / 0.11);
+  for (let i = 1; i < n; i++) {
+    const x = fx0 + (fx1 - fx0) * i / n;
+    B(b, x - 0.007, x + 0.007, 0.06, hR - 0.2, fz - 0.007, fz + 0.007, M.iron);
+    if (i < n) { const r = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.006, 6, 20), M.iron); r.position.set(x + (fx1 - fx0) / n / 2, hR - 0.12, fz); r.castShadow = true; b.add(r); }
+    // remate en punta de lanza bajo la cenefa
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.014, 0.04, 8), M.iron); tip.position.set(x, hR - 0.2 + 0.03, fz); b.add(tip);
+  }
+  // Laterales
+  const ns = Math.max(2, Math.round((zf - fz) / 0.11));
+  [fx0, fx1].forEach(x => { for (let i = 1; i < ns; i++) { const z = fz + (zf - fz) * i / ns; B(b, x - 0.007, x + 0.007, 0.06, hR - 0.2, z - 0.007, z + 0.007, M.iron); } B(b, x - 0.015, x + 0.015, 0, hR, zf - 0.03, zf, M.iron); });
+  // Una maceta colgada en la barandilla
+  cyl(b, 0.11, 0.14, M.terracotta, (x0 + x1) / 2 + 0.35, hR - 0.14, fz - 0.1, 20, 0.13); cyl(b, 0.1, 0.05, M.leaf, (x0 + x1) / 2 + 0.35, hR - 0.04, fz - 0.1, 12);
+  void bar;
+  tag(b, 'Balcón', `${c1(x1 - x0)} × ${c1(D)} · forja negra`, (x0 + x1) / 2, hR + 0.25, zf - D / 2);
 }
 function dim(parent, a, b, text, inner = false, mat = M.dimLine, cls = 'dim') {
   const A = new THREE.Vector3(...a), Bv = new THREE.Vector3(...b);
@@ -610,7 +643,7 @@ function applyNight() {
   scene.environmentIntensity = n ? 0.07 : 0.55;
   scene.background = new THREE.Color(n ? '#0d1116' : '#dfe4e2');
   stage.style.background = n ? '#0d1116' : '#dfe4e2';
-  M.ground.color.set(n ? '#1a1e22' : '#c9ccc7'); M.outside.color.set(n ? '#1b2128' : '#dfe7e8');
+  M.ground.color.set(n ? '#1a1e22' : '#c9ccc7');
   skyLights.children.forEach(l => l.intensity = n ? 0 : 3.4);
   bloom.enabled = n; applyNightFx();
   renderer.toneMappingExposure = n ? 1.2 : 0.9;

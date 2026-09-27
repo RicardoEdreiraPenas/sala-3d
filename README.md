@@ -12,7 +12,7 @@ Puedes probarlo aquí: https://ricardoedreirapenas.github.io/sala-3d/
 
 ## Qué hace
 
-- Parte de mi sala: pared del sofá de 2,43, pared de la TV de 2,80 y 3,135 de ancho junto a la ventana (68 + 146 + 99,5). La ventana es una balconera de dos hojas al fondo de un nicho de 30,5 cm, con 14 cm de pared a cada lado. Junto a la cocina la sala mide 3,165, así que la pared de la TV se abre un poco, y el modelo lo respeta.
+- Parte de mi sala: pared del sofá de 2,43, pared de la TV de 2,80 y 3,135 de ancho junto a la ventana (68 + 146 + 99,5). La ventana es una balconera de dos hojas al fondo de un nicho de 30,5 cm, con 14 cm de pared a cada lado, y da a un balcón pequeño de los de asomarse, con barandilla de forja negra. Junto a la cocina la sala mide 3,165, así que la pared de la TV se abre un poco, y el modelo lo respeta.
 - Tiene dos distribuciones:
   - **A · Como la tengo:** sofá con la chaise hacia la cocina, escritorio en la esquina de la ventana, mueble bajo con la TV colgada encima y una repisa larga por arriba.
   - **B · Chaise a la ventana:** la chaise mira a la luz. Queda bonito, pero el panel avisa de que las hojas de la balconera chocan con ella.

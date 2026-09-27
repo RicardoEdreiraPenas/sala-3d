@@ -58,6 +58,7 @@ export const FURNITURE_LIMITS = {
 // Alturas fijas (metros)
 export const HEIGHTS = { seat: 0.44, back: 0.84, desk: 0.74, tvUnit: 0.42, shelf: 1.86, tvCenter: 1.30, coffee: 0.42 };
 export const WINDOW = { h: 2.20, box: 0.22 };   // balconera de dos hojas y cajón de persiana encima
+export const BALCONY = { depth: 0.45, rail: 1.0 }; // balcón de asomarse con barandilla de forja
 
 /*
  * Catálogo de acabados: 4 opciones por categoría, tendencias 2025–2026.
